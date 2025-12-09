@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Inventory Item Management — Mock</title>
+<style>
+  /* --------------------------
+     Base / Reset
+     -------------------------- */
+  :root{
+    --bg:#f4f7fb;
+    --card:#ffffff;
+    --muted:#6b7280;
+    --nav-bg:#0f2033;
+    --nav-accent:#0a6ad0;
+    --primary:#1f6fff;
+    --primary-dark:#155bd1;
+    --border:#e6ecf3;
+    --shadow: 0 8px 18px rgba(18, 38, 63, 0.06);
+    --radius:12px;
+    --text:#0f1724;
+    --success:#1fa463;
+    --badge-bg:#e8f8ee;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    font-size:14px;
+    line-height:1.35;
+  }
+
+  /* --------------------------
+     Layout
+     -------------------------- */
+  .app {
+    display: grid;
+    grid-template-columns: 240px 1fr 320px; /* left | center | right */
+    gap: 28px;
+    min-height:100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background:linear-gradient(180deg,#081426 0%, #0f2033 100%);
+    color:#cfe6ff;
+    padding:28px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+  .logo{
+    color:#65b4ff;
+    font-weight:800;
+    font-size:20px;
+    letter-spacing:0.6px;
+    margin-bottom:6px;
+  }
+  .nav {
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-top:6px;
+  }
+  .nav a{
+    color: #cfe6ff;
+    text-decoration:none;
+    padding:10px 12px;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:14px;
+  }
+  .nav a.active{
+    background:rgba(255,255,255,0.06);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+  }
+  .nav a:hover{ background: rgba(255,255,255,0.03); }
+
+  /* Center content */
+  .container {
+    padding:28px 20px;
+  }
+  header.top {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    margin-bottom:18px;
+  }
+  .page-title{
+    margin:0 0 6px 0;
+    font-size:22px;
+    font-weight:700;
+  }
+  .page-sub{
+    margin:0;
+    color:var(--muted);
+    font-size:13px;
+  }
+  .top-actions{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .btn {
+    border:1px solid var(--border);
+    background: #fff;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:13px;
+  }
+  .btn:active{ transform:translateY(1px) }
+
+  /* search card */
+  .search-card{
+    margin-bottom:18px;
+    background:var(--card);
+    border-radius:14px;
+    padding:16px;
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
+  }
+  .search-row{
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+  .search-row input[type="text"]{
+    flex:1;
+    border:1px solid var(--border);
+    padding:10px 12px;
+    border-radius:8px;
+    background:transparent;
+    font-size:14px;
+  }
+  .search-row select{
+    width:240px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    padding:10px 12px;
+    background:white;
+  }
+
+  /* form + right column area */
+  .main-row{
+    display:flex;
+    gap:18px;
+    align-items:flex-start;
+  }
+
+  /* Center form card */
+  .form-card{
+    flex:1;
+    background:var(--card);
+    border-radius:14px;
+    padding:18px;
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
+  }
+  .form-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .form-title{
+    font-weight:700;
+    font-size:16px;
+  }
+  .form-sub{
+    color:var(--muted);
+    font-size:13px;
+  }
+  /* tabs row mimic */
+  .tabs{
+    display:flex;
+    gap:14px;
+    border-bottom:1px solid var(--border);
+    padding-bottom:10px;
+    margin-top:12px;
+  }
+  .tab{
+    padding:8px 6px;
+    font-size:13px;
+    color:var(--muted);
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+  }
+  .tab.active{
+    color:var(--primary);
+    border-bottom:3px solid rgba(45,116,255,0.12);
+    font-weight:600;
+  }
+
+  /* form grid */
+  .fields {
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:14px 22px;
+    margin-top:18px;
+  }
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .field label{
+    font-size:13px;
+    color:#0f1724;
+    font-weight:600;
+  }
+  .field .muted{ color:var(--muted); font-size:12px; font-weight:400; }
+  input[type="text"], select, textarea {
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:transparent;
+    font-size:14px;
+    color:var(--text);
+  }
+  textarea{ min-height:90px; resize:vertical; }
+
+  /* strength + unit inline */
+  .inline-3 {
+    display:grid;
+    grid-template-columns: 1fr 130px 100px;
+    gap:10px;
+  }
+
+  /* bottom actions */
+  .form-actions{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-top:20px;
+  }
+  .left-actions{ display:flex; gap:10px; }
+  .btn-ghost{ background:#fff; border:1px solid var(--border); padding:9px 14px; border-radius:8px; }
+  .btn-primary{ background:linear-gradient(180deg,var(--primary),var(--primary-dark)); color:#fff; border:none; padding:10px 16px; border-radius:8px; box-shadow:0 6px 18px rgba(31,111,255,0.18); }
+
+  /* Right column */
+  .right-col{
+    width:320px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .card {
+    background:var(--card);
+    border-radius:12px;
+    padding:14px;
+    border:1px solid var(--border);
+    box-shadow:var(--shadow);
+  }
+
+  /* Quick actions list */
+  .quick-list{ display:flex; flex-direction:column; gap:10px; }
+  .quick-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    cursor:pointer;
+    background:#fff;
+  }
+  .quick-item:hover{ background: #fbfdff; }
+
+  /* Keyboard shortcuts */
+  .kbd { background:#f3f6fb; border-radius:6px; padding:4px 8px; font-size:12px; color:var(--muted); border:1px solid #eef4fb; }
+
+  /* Recently added */
+  .recent-item{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:#fff;
+  }
+  .recent-icon{
+    width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(180deg,#f4fbff,#eef7ff); color:var(--primary); font-weight:700;
+  }
+  .recent-meta{ font-size:13px; color:var(--muted); }
+
+  .help-card{
+    background: linear-gradient(180deg,#f8fbff,#ffffff);
+    border-radius:10px;
+    padding:14px;
+    border:1px solid var(--border);
+  }
+  .help-card a{ color:var(--primary); font-weight:600; text-decoration:none; }
+
+  /* small labels / badges */
+  .badge {
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:#eefbf4;
+    color:var(--success);
+    padding:6px 8px;
+    border-radius:999px;
+    font-size:12px;
+    border:1px solid rgba(31,111,255,0.04);
+  }
+
+  /* misc */
+  .muted-block{ color:var(--muted); font-size:13px; }
+  .small{ font-size:12px; color:var(--muted); }
+
+  /* Responsive */
+  @media (max-width:1100px){
+    .app{ grid-template-columns: 200px 1fr; }
+    .right-col{ display:none; }
+  }
+  @media (max-width:760px){
+    .app{ grid-template-columns:1fr; }
+    .sidebar{ display:flex; flex-direction:row; gap:10px; align-items:center; padding:14px; overflow:auto; }
+    .container{ padding:14px; }
+    .main-row{ flex-direction:column; }
+    .form-card{ order:1 }
+    .right-col{ order:2; width:100%; display:block; }
+  }
+
+  /* subtle focus */
+  input:focus, textarea:focus, select:focus { outline: none; border-color: rgba(40, 114, 255, 0.3); box-shadow:0 3px 10px rgba(31,111,255,0.06) }
+</style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="Inventory app layout">
+
+    <!-- LEFT: sidebar -->
+    <aside class="sidebar" aria-label="Sidebar navigation">
+      <div>
+        <div class="logo">ZFF</div>
+        <div style="color:#bfdcff; font-size:12px; margin-top:6px;">Inventory Suite</div>
+      </div>
+
+      <nav class="nav" aria-label="Main navigation">
+        <a class="active">Dashboard</a>
+        <a>Schedule</a>
+        <a>Hours Tracking</a>
+        <a>Shift Swaps</a>
+        <a>Team Directory</a>
+        <a>Messages</a>
+        <a>Inventory</a>
+        <a>Profile</a>
+        <a>Notifications</a>
+      </nav>
+    </aside>
+
+    <!-- CENTER: main content -->
+    <main class="container" role="main">
+      <header class="top">
+        <div>
+          <h1 class="page-title">Inventory Item Management</h1>
+          <p class="page-sub">Add, edit, and manage pharmacy inventory items with comprehensive data tracking</p>
+        </div>
+
+        <div class="top-actions">
+          <button class="btn">Bulk Import</button>
+          <button class="btn">Export Catalog</button>
+        </div>
+      </header>
+
+      <!-- search card -->
+      <section class="search-card" aria-label="Search">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <input type="text" placeholder="Search by name, NDC, barcode, or manufacturer..." aria-label="Search input" />
+        </div>
+        <div style="margin-top:12px; display:flex; align-items:center; gap:10px;">
+          <select aria-label="Category select">
+            <option>All Categories</option>
+          </select>
+          <button class="btn" style="padding:8px 10px;">Filter</button>
+        </div>
+      </section>
+
+      <!-- main row -->
+      <div class="main-row">
+        <!-- form card (center) -->
+        <div class="form-card" aria-label="Add new inventory item form">
+          <div class="form-header">
+            <div>
+              <div class="form-title">Add New Inventory Item</div>
+              <div class="form-sub">Complete all required fields marked with *</div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <div class="small badge" title="Draft status">Draft</div>
+              <button class="btn" style="background:transparent;border:0;color:var(--primary);font-weight:600">Save Draft</button>
+            </div>
+          </div>
+
+          <div class="tabs" role="tablist" aria-label="Form tabs">
+            <div class="tab active" role="tab">Basic Information</div>
+            <div class="tab" role="tab">Pricing</div>
+            <div class="tab" role="tab">Supplier</div>
+            <div class="tab" role="tab">Storage</div>
+            <div class="tab" role="tab">Regulatory</div>
+          </div>
+
+          <form onsubmit="event.preventDefault(); onAddItem();" style="margin-top:6px;">
+            <div class="fields">
+              <div class="field">
+                <label>Item Name <span style="color:#e11d48">*</span></label>
+                <input id="itemName" type="text" placeholder="Enter medication or product name" />
+              </div>
+
+              <div class="field">
+                <label>Generic Name</label>
+                <input id="genericName" type="text" placeholder="Enter generic name" />
+              </div>
+
+              <div class="field">
+                <label>Brand Name</label>
+                <input id="brandName" type="text" placeholder="Enter brand name" />
+              </div>
+
+              <div class="field">
+                <label>Barcode / UPC</label>
+                <input id="barcode" type="text" placeholder="Scan or enter barcode" />
+              </div>
+
+              <div class="field">
+                <label>NDC Number <span style="color:#e11d48">*</span></label>
+                <input id="ndc" type="text" placeholder="00000-0000-00" />
+                <div class="muted small" style="margin-top:6px;">Format: 00000-0000-00</div>
+              </div>
+
+              <div class="field">
+                <label>Manufacturer <span style="color:#e11d48">*</span></label>
+                <input id="manufacturer" type="text" placeholder="Enter manufacturer name" />
+              </div>
+
+              <div class="field">
+                <label>Category <span style="color:#e11d48">*</span></label>
+                <select id="category">
+                  <option value="">Select category</option>
+                  <option>Analgesic</option>
+                  <option>Antibiotic</option>
+                  <option>OTC</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Dosage Form <span style="color:#e11d48">*</span></label>
+                <select id="dosageForm">
+                  <option value="">Select form</option>
+                  <option>Tablet</option>
+                  <option>Capsule</option>
+                  <option>Liquid</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Strength <span style="color:#e11d48">*</span></label>
+                <input id="strength" type="text" placeholder="e.g., 500" />
+              </div>
+
+              <div class="field">
+                <label>Package Size <span style="color:#e11d48">*</span></label>
+                <input id="packageSize" type="text" placeholder="e.g., 100" />
+              </div>
+
+              <div class="field">
+                <label>Unit</label>
+                <select id="unit">
+                  <option>Tablets</option>
+                  <option>Capsules</option>
+                  <option>mL</option>
+                </select>
+              </div>
+
+              <div class="field full" style="grid-column:'1 / -1'; grid-column:span 2;">
+                <label>Description</label>
+                <textarea id="description" placeholder="Enter product description, usage instructions, or notes"></textarea>
+              </div>
+            </div>
+
+            <div class="form-actions" style="margin-top:18px;">
+              <div class="left-actions">
+                <button type="button" class="btn-ghost" onclick="onCancel()">Cancel</button>
+                <button type="button" class="btn-ghost" onclick="onPreview()">Preview</button>
+              </div>
+              <div>
+                <button type="submit" class="btn-primary">Add Item to Inventory</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- RIGHT: actions column -->
+        <aside class="right-col" aria-label="Right column actions">
+          <!-- Quick Actions -->
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <div style="font-weight:700">Quick Actions</div>
+              <div class="small muted"> </div>
+            </div>
+            <div class="quick-list">
+              <div class="quick-item" onclick="alert('Scan Barcode clicked')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex:0 0 22px" xmlns="http://www.w3.org/2000/svg"><path d="M3 7V5a2 2 0 0 1 2-2h2" stroke="#3b82f6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 17v2a2 2 0 0 1-2 2h-2" stroke="#3b82f6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><rect x="8" y="6" width="8" height="12" rx="2" stroke="#3b82f6" stroke-width="1.6"/></svg>
+                <div style="flex:1">
+                  <div style="font-weight:600">Scan Barcode</div>
+                  <div class="small muted">Scan an item's barcode using your device</div>
+                </div>
+              </div>
+
+              <div class="quick-item" onclick="alert('View Templates clicked')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 7a2 2 0 0 1 2-2h14" stroke="#0aa0d6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div style="flex:1">
+                  <div style="font-weight:600">View Templates</div>
+                  <div class="small muted">Open item templates</div>
+                </div>
+              </div>
+
+              <div class="quick-item" onclick="alert('Duplicate Item clicked')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="11" height="11" rx="2" stroke="#0aa0d6" stroke-width="1.6"/><rect x="3" y="3" width="11" height="11" rx="2" stroke="#0aa0d6" stroke-width="1.6"/></svg>
+                <div style="flex:1">
+                  <div style="font-weight:600">Duplicate Item</div>
+                  <div class="small muted">Create item from existing details</div>
+                </div>
+              </div>
+
+              <div class="quick-item" onclick="alert('View History clicked')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12.79A9 9 0 1 1 11.21 3" stroke="#0aa0d6" stroke-width="1.6"/></svg>
+                <div style="flex:1">
+                  <div style="font-weight:600">View History</div>
+                  <div class="small muted">View change history for items</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Keyboard shortcuts -->
+          <div class="card">
+            <div style="font-weight:700;margin-bottom:10px">Keyboard Shortcuts</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="small muted">Save Draft</div>
+                <div class="kbd">Ctrl+S</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="small muted">Submit Form</div>
+                <div class="kbd">Ctrl+Enter</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="small muted">Next Tab</div>
+                <div class="kbd">Tab</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="small muted">Previous Tab</div>
+                <div class="kbd">Shift+Tab</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="small muted">Cancel</div>
+                <div class="kbd">Esc</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recently added -->
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <div style="font-weight:700">Recently Added</div>
+              <a href="#" style="font-size:13px;color:var(--primary);text-decoration:none">View All</a>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="recent-item">
+                <div class="recent-icon">A</div>
+                <div>
+                  <div style="font-weight:700">Amoxicillin 500mg</div>
+                  <div class="recent-meta">NDC: 00093-4155-73 · <span style="color:var(--success);font-weight:600">Added 2 hours ago</span></div>
+                </div>
+              </div>
+
+              <div class="recent-item">
+                <div class="recent-icon" style="background:linear-gradient(180deg,#f0fff4,#eefaf1); color: var(--success)">I</div>
+                <div>
+                  <div style="font-weight:700">Ibuprofen 200mg</div>
+                  <div class="recent-meta">NDC: 50580-0506-01 · <span style="color:var(--success);font-weight:600">Added 5 hours ago</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Need help -->
+          <div class="help-card">
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="flex:0 0 36px">
+                <path d="M12 2a10 10 0 1 0 0 20" stroke="#cfe6ff" stroke-width="1.6"/>
+                <path d="M12 7a2 2 0 1 1 0 4" stroke="#1f6fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M11 14h1v3" stroke="#1f6fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div>
+                <div style="font-weight:700;margin-bottom:6px">Need Help?</div>
+                <div class="small muted" style="margin-bottom:8px">Access our comprehensive guide for adding inventory items.</div>
+                <a href="#" onclick="alert('Open documentation')" style="display:inline-block">View Documentation →</a>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+  </div>
+
+<script>
+  // Minimal JS to mimic functionality
+  function onAddItem(){
+    const item = {
+      itemName: document.getElementById('itemName').value.trim(),
+      genericName: document.getElementById('genericName').value.trim(),
+      brandName: document.getElementById('brandName').value.trim(),
+      ndc: document.getElementById('ndc').value.trim(),
+      manufacturer: document.getElementById('manufacturer').value.trim(),
+      category: document.getElementById('category').value,
+      dosageForm: document.getElementById('dosageForm').value,
+      strength: document.getElementById('strength').value.trim(),
+      packageSize: document.getElementById('packageSize').value.trim(),
+      unit: document.getElementById('unit').value,
+      description: document.getElementById('description').value.trim(),
+    };
+
+    // Basic validation for required fields (mimic screenshot required)
+    const required = ['itemName','ndc','manufacturer','category','dosageForm','strength','packageSize'];
+    for(let i=0;i<required.length;i++){
+      const el = document.getElementById(required[i]);
+      if(!el || !el.value.trim()){
+        el && el.focus();
+        alert('Please complete required field: ' + el.previousElementSibling.innerText.replace('*','').trim());
+        return;
+      }
+    }
+
+    console.log('Item to add:', item);
+    // simulate adding to "recently added"
+    const recentCard = document.querySelector('.recent-item');
+    if(recentCard){
+      const html = `
+        <div class="recent-item" style="animation:fadeIn .3s ease">
+          <div class="recent-icon">${(item.itemName||'X').charAt(0).toUpperCase()}</div>
+          <div>
+            <div style="font-weight:700">${escapeHtml(item.itemName)}</div>
+            <div class="recent-meta">NDC: ${escapeHtml(item.ndc)} · <span style="color:var(--success);font-weight:600">Added just now</span></div>
+          </div>
+        </div>
+      `;
+      // prepend to recently added list
+      const parent = document.querySelector('.card .recent-item')?.parentElement;
+      if(parent){
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = html;
+        parent.prepend(wrapper.firstElementChild);
+      }
+    }
+
+    alert('Item added (see console).');
+  }
+
+  function onCancel(){
+    if(confirm('Discard changes?')) {
+      // simple clear form
+      ['itemName','genericName','brandName','ndc','barcode','manufacturer','category','dosageForm','strength','packageSize','unit','description'].forEach(id => {
+        const el=document.getElementById(id);
+        if(el) {
+          if(el.tagName === 'SELECT') el.selectedIndex = 0;
+          else el.value = '';
+        }
+      });
+    }
+  }
+  function onPreview(){
+    const vals = {
+      Item: document.getElementById('itemName').value,
+      Generic: document.getElementById('genericName').value,
+      Brand: document.getElementById('brandName').value,
+      NDC: document.getElementById('ndc').value,
+      Manufacturer: document.getElementById('manufacturer').value
+    };
+    let txt = 'Preview:\\n';
+    for(const k in vals) txt += `${k}: ${vals[k] || '(empty)'}\\n`;
+    alert(txt);
+  }
+
+  // small html escape
+  function escapeHtml(str){
+    return str.replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m] });
+  }
+
+  // keyboard shortcuts quick demo
+  document.addEventListener('keydown', function(e){
+    if(e.ctrlKey && e.key === 's'){ e.preventDefault(); alert('Save Draft (simulated)'); }
+    if(e.ctrlKey && (e.key === 'Enter' || (e.key === 'j' && e.metaKey))){ e.preventDefault(); onAddItem(); }
+  });
+</script>
+</body>
+</html>
