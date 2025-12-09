@@ -2,3 +2,4 @@ A) Once we used the design patterns, things got tidier and simpler to handle. Cl
 B) I added quick actions,  keyboard shortcuts, recently added, and need help. Everything I added follows the 5 design patterns, which are navigation, input & forms, feedback & status, layout & structure, and data presentation. It fits my feature because it helps users navigate easier around the webpage. It solves the HCI problem of not being able to find what you are looking for because everything is sorted in a card layout with its labels and icons. It helps users have a more pleasant experience browsing this webpage.
 ![Before](https://github.com/user-attachments/assets/aef61cfb-9021-401b-a6b1-d90722faeb0f)
 ![After](https://github.com/user-attachments/assets/d80d325e-bc61-411a-94ca-deb07a7163b1)
+<img width="1685" height="731" alt="Table" src="https://github.com/user-attachments/assets/92c9e476-d45a-45bb-a96f-38a77f1edf2c" />
